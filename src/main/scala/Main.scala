@@ -3,19 +3,13 @@ import data._
 import scala.collection.mutable
 
 object Main {
+
   val DELAY = 50
-
-
-  
-
-  def get_or[K](m: mutable.HashMap[K, Int], k: K, default: Int) : Int  = {
-      if val Some(v) = m.get(k) { v } else { default }
-    }
 
   def update<K>(m: &mut mutable.HashMap<K, Int>, k: K, delta: Int)
   where K: std.hash.Hash + Eq + std.marker.Sized
     = {
-      val old_v: Int = get_or(m, &k, 0);
+      val old_v: Int = m.getOrElse(k, 0)
       val new_v = old_v  + delta;
       if new_v > 0 { m.insert(k, new_v ); }
       else { m.remove(&k); }
@@ -235,7 +229,7 @@ object Main {
   def explore_clone(level: &Level, drone: &Drone, drone_idx: Int) : Option<VecDeque<Action>> = {
     if drone_idx == 0
     && level.bonuses.values().any(|&b| b == Bonus.CLONE)
-    && get_or(&level.collected, &Bonus.CLONE, 0) == 0 {
+    && level.collected.getOrElse(Bonus.CLONE, 0) == 0 {
       explore(level, drone, find_clone_score)
     } else {
       None
@@ -247,7 +241,7 @@ object Main {
   }
 
   def explore_spawn(level: Level, drone: Drone, drone_idx: Int) : Option[Vector[Action]] = {
-    if (drone_idx == 0 && get_or(level.collected, Bonus.CLONE, 0) > 0) {
+    if (drone_idx == 0 && level.collected.getOrElse(Bonus.CLONE, 0) > 0) {
       explore(level, drone, find_spawn_score)
     } else {
       None

@@ -67,9 +67,9 @@ case class Drone(pos: Point,
   }
 
   def activate_wheels( level: &mut Level) : Boolean = {
-    if get_or(&level.collected, &Bonus.WHEELS, 0) > 0
+    if (level.collected.getOrElse(Bonus.WHEELS, 0) > 0
     && self.wheels == 0
-    && self.has_space(level) {
+    && self.has_space(level)) {
       update(&mut level.collected, Bonus.WHEELS, -1);
       self.wheels = 51;
       self.path += "F";
@@ -78,8 +78,8 @@ case class Drone(pos: Point,
   }
 
   def activate_drill( level: &mut Level) : Boolean = {
-    if get_or(&level.collected, &Bonus.DRILL, 0) > 0
-    && self.drill == 0 {
+    if (level.collected.getOrElse(Bonus.DRILL, 0) > 0
+    && self.drill == 0) {
       update(&mut level.collected, Bonus.DRILL, -1);
       self.drill = 31;
       self.path += "L";
@@ -88,7 +88,7 @@ case class Drone(pos: Point,
   }
 
   def activate_hand( level: &mut Level) : Boolean = {
-    if get_or(&level.collected, &Bonus.HAND, 0) > 0 {
+    if (level.collected.getOrElse(Bonus.HAND, 0) > 0) {
       update(&mut level.collected, Bonus.HAND, -1);
       val new_hand = Point(1, self.hands.last().unwrap().y + 1);
       self.path += &format!("B({},{})", new_hand.x, new_hand.y);
@@ -98,9 +98,8 @@ case class Drone(pos: Point,
   }
 
   def set_beakon( level: &mut Level) : Boolean = {
-    if get_or(&level.collected, Bonus.TELEPORT, 0) > 0
-    && level.beakons.iter().all(|b| (b.x - self.pos.x).abs() + (b.y - self.pos.y).abs() >= 50)
-    {
+    if (level.collected.getOrElse(Bonus.TELEPORT, 0) > 0
+    && level.beakons.iter().all(|b| (b.x - self.pos.x).abs() + (b.y - self.pos.y).abs() >= 50)) {
       update(&mut level.collected, Bonus.TELEPORT, -1);
       self.path += "R";
       level.beakons.push(self.pos);
@@ -109,7 +108,7 @@ case class Drone(pos: Point,
   }
 
   def reduplicate( level: &mut Level) : Option<Drone> = {
-    if get_or(&level.collected, &Bonus.CLONE, 0) > 0 && level.spawns.contains(&self.pos) {
+    if (level.collected.getOrElse(Bonus.CLONE, 0) > 0 && level.spawns.contains(&self.pos)) {
       update(&mut level.collected, Bonus.CLONE, -1);
       self.path += "C";
       Some(Drone(self.pos))
