@@ -6,9 +6,9 @@ import scala.collection.mutable
 
 object Parser {
 
-    val POINT_RE = "\((?P<X>-?\d+),(?P<Y>-?\d+)\)"r
-    val BONUS_RE = "(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)"r
-    val SPAWN_RE = "X\((?P<X>-?\d+),(?P<Y>-?\d+)\)"r
+    val POINT_RE = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
+    val BONUS_RE = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
+    val SPAWN_RE = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
 
 
   def grid_idx(x:Int, y:Int, width:Int):Int = x + y * width

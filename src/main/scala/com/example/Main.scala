@@ -56,15 +56,15 @@ object Main {
 
         val bg = if (drones.exists(d => d.hands.exists(h => {
           d.pos.x + h.x == x  && d.pos.y + h.y == y  && is_reaching(level, d.pos, h)
-        }))) { "\x1B[48;5;202m" }
-        else if (level.bonuses.contains(point)) { "\x1B[48;5;33m\x1B[38;5;15m" }
-        else if (level.spawns.contains(point) )      { "\x1B[48;5;33m\x1B[38;5;15m" }
-        else if (level.beakons.contains(point))      { "\x1B[48;5;33m\x1B[38;5;15m" }
+        }))) { """\x1B[48;5;202m""" }
+        else if (level.bonuses.contains(point)) { """\x1B[48;5;33m\x1B[38;5;15m""" }
+        else if (level.spawns.contains(point) )      { """\x1B[48;5;33m\x1B[38;5;15m""" }
+        else if (level.beakons.contains(point))      { """\x1B[48;5;33m\x1B[38;5;15m""" }
         else {
           level.get_cell(x, y) match  {
-           case Cell.EMPTY   =>  "\x1B[48;5;252m"
-           case Cell.BLOCKED =>  "\x1B[48;5;240m"
-           case Cell.WRAPPED =>  "\x1B[48;5;227m"
+           case Cell.EMPTY   =>  """\x1B[48;5;252m"""
+           case Cell.BLOCKED =>  """\x1B[48;5;240m"""
+           case Cell.WRAPPED =>  """\x1B[48;5;227m"""
           }
         }
 
@@ -86,7 +86,7 @@ object Main {
         } else {
           zone_char(level.get_zone(x, y))
         }
-        print("{}{}\x1B[0m", bg, ch)
+        print("""{}{}\x1B[0m""", bg, ch)
       }
       println()
     }
@@ -247,7 +247,7 @@ object Main {
   }
 
   def print_state(level: Level, drones: Vector[Drone]):Unit = {
-    println("\x1B[2J")
+    println("""\x1B[2J""")
     print_level(level, drones)
     println("Empty {:?} Collected {:?}", level.zones_empty, level.collected)
     for ((drone, i) <- drones.zipWithIndex) {
@@ -267,7 +267,7 @@ object Main {
 
   def solve_impl(level: Level, drones: Vector[Drone], interactive: Boolean) : String = {
     if (interactive) {
-      println("\x1B[?1049h")
+      println("""\x1B[?1049h""")
     }
     drones(0).wrap_bot(level)
     while (level.empty > 0) {
@@ -314,7 +314,7 @@ object Main {
 
     if (interactive) {
       print_state(level, drones)
-      println("\x1B[?1049l")
+      println("""\x1B[?1049l""")
     }
 
     val paths: Vector[String] = drones.map(_.path).toList
