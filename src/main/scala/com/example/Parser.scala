@@ -9,9 +9,9 @@ import scala.util.matching.Regex
 
 object Parser {
 
-  val POINT_RE: Regex = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
-  val BONUS_RE: Regex = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
-  val SPAWN_RE: Regex = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
+  val POINT_RE: Regex = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
+  val BONUS_RE: Regex = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
+  val SPAWN_RE: Regex = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
 
 
   def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
@@ -57,7 +57,7 @@ object Parser {
       && l.to.y >= (y + 1))
   }
 
-  def weights(grid: List[Cell], width: Int, height: Int): List[Int] = {
+  def weights(grid: List[Cell], width: Int, height: Int): Vector[Int] = {
     val weights = new ListBuffer[Int]()
     for (y <- 0 until height) {
       for (x <- 0 until width) {
@@ -73,10 +73,10 @@ object Parser {
       }
     }
     assert(grid.length == weights.length)
-    weights.toList
+    weights.toVector
   }
 
-  def zones(zones_count: Int, grid: List[Cell], width: Int, height: Int): (List[Zone], List[Zone]) = {
+  def zones(zones_count: Int, grid: List[Cell], width: Int, height: Int): (Vector[Zone], ListBuffer[Int]) = {
     val len = width * height
 
     val zones = new ListBuffer[Zone]()
@@ -124,7 +124,7 @@ object Parser {
       }
     }
 
-    (zones.toList, zones_empty.map(Zone(_)).toList)
+    (zones.toVector, zones_empty)
   }
 
   def build_level(walls: mutable.HashSet[Point], zones_count: Int): Level = {
@@ -145,12 +145,12 @@ object Parser {
       }
       assert(walls.contains(Point(width, y)) && Cell.EMPTY == last_cell)
     }
-    val weights = weights(grid, width, height)
-    val (zones, zones_empty) = zones(zones_count, grid, width, height)
-    Level(grid.toVector, weights, zones, width, height, empty, zones_empty)
+    val newweights = weights(grid.toList, width, height)
+    val (zones_all, zones_empty) = zones(zones_count, grid.toList, width, height)
+    Level(grid, newweights, zones_all, width, height, empty, zones_empty)
   }
 
-  val CLONE_RE: Regex = """C(d+,d+)""" r
+  val CLONE_RE: Regex = """C(d+,d+)""".r
 
   def parse_level(file: String): (Level, List[Drone]) = {
     val fragments = file.split("#").toList

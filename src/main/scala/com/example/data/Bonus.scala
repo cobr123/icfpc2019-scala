@@ -3,7 +3,7 @@ package com.example.data
 
 sealed trait Bonus
 
-object Bonus extends Enum[Bonus] {
+object Bonus {
 
   case object HAND extends Bonus
 

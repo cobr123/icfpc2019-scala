@@ -2,13 +2,13 @@ package com.example.data
 
 import scala.collection.mutable
 
-case class Level(grid: Vector[Cell],
+case class Level(grid: mutable.ListBuffer[Cell],
                  weights: Vector[Int],
                  zones: Vector[Zone],
                  width: Int,
                  height: Int,
-                 empty: Int,
-                 zones_empty: Vector[Int],
+                 var empty: Int,
+                 zones_empty: mutable.ListBuffer[Int],
                  spawns: mutable.HashSet[Point] = new mutable.HashSet(),
                  beakons: mutable.ListBuffer[Point] = new mutable.ListBuffer[Point](),
                  bonuses: mutable.HashMap[Point, Bonus] = new mutable.HashMap(),
@@ -33,7 +33,7 @@ case class Level(grid: Vector[Cell],
     empty -= 1
     val zone = zones(idx)
     if (zone.idx < 255) {
-      zones_empty(zone) -= 1
+      zones_empty(zone.idx) -= 1
     }
     grid(idx) = Cell.WRAPPED
   }

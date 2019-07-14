@@ -3,7 +3,7 @@ package com.example.data
 
 sealed trait Cell
 
-object Cell extends Enum[Cell] {
+object Cell {
 
   case object EMPTY extends Cell
 

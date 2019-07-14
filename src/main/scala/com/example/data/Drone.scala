@@ -3,12 +3,13 @@ package com.example.data
 import com.example.Main
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 case class Drone(var pos: Point,
                  hands: mutable.ListBuffer[Point] = mutable.ListBuffer(Point(0, 0), Point(1, -1), Point(1, 0), Point(1, 1)),
                  var wheels: Int = 0,
                  var drill: Int = 0,
-                 path: String = "",
+                 var path: String = "",
                  var plan: mutable.ListBuffer[Action] = new mutable.ListBuffer[Action](),
                  var zone: Zone = Zone.UNDECIDED_ZONE) {
 
@@ -21,7 +22,7 @@ case class Drone(var pos: Point,
   }
 
   def choose_zone(taken: List[Zone], level: Level): Boolean = {
-    if (zone == Zone.UNDECIDED_ZONE || level.zones_empty(zone) == 0) {
+    if (zone == Zone.UNDECIDED_ZONE || level.zones_empty(zone.idx) == 0) {
       val not_empty = level.zones_empty.filter(z => z > 0).toList
       val not_taken = not_empty.filter(z => !taken.contains(z))
       val looking_in = if (not_taken.nonEmpty) {
@@ -36,9 +37,9 @@ case class Drone(var pos: Point,
       }
 
       Main.explore_impl(level, this, rate) match {
-        case Some((newplan, newpos, _)) =>
+        case Some((newplan, newpos)) =>
           zone = level.get_zone(newpos.x, newpos.y)
-          plan = newplan
+          plan = new ListBuffer[Action]().addAll(newplan)
         case _ => throw new Exception("No zone left to choose")
       }
       true
@@ -50,11 +51,13 @@ case class Drone(var pos: Point,
   def collect(level: Level): Unit = {
     level.bonuses.get(pos) match {
       case Some(bonus) =>
-        level.collected.get(bonus) match {
-          case Some(collected) => collected += 1
-          case _ => level.collected.addOne(bonus, 1)
+        if (level.collected.contains(bonus)) {
+          level.collected(bonus) += 1
+        } else {
+          level.collected.addOne(bonus, 1)
         }
         level.bonuses.remove(pos)
+      case _ =>
     }
   }
 

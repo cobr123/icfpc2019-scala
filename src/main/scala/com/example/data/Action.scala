@@ -3,7 +3,7 @@ package com.example.data
 
 sealed trait Action
 
-object Action extends Enum[Action] {
+object Action {
 
   case object UP extends Action
 
@@ -19,4 +19,5 @@ object Action extends Enum[Action] {
 
   case object JUMP2 extends Action
 
+  def all = List(Action.LEFT, Action.RIGHT, Action.UP, Action.DOWN, Action.JUMP0, Action.JUMP1, Action.JUMP2)
 }

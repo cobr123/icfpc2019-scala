@@ -28,19 +28,19 @@ object Main {
   }
 
   def hand_blockers(): Vector[Vector[Point]] = {
-    val res = new Vector[Vector[Point]](20)
+    val res = Vector[Vector[Point]]()
     res.appended(Vector(Point(1, -1)))
     res.appended(Vector(Point(1, 0)))
     res.appended(Vector(Point(1, 1)))
     for (maxy <- 2 until 19) {
-      val vec = new Vector[Point](maxy)
+      val vec = new ListBuffer[Point]()
       for (y <- 1 until (maxy / 2 + 1)) {
         vec.appended(Point(0, y))
       }
       for (y <- (maxy + 1) / 2 until (maxy + 1)) {
         vec.appended(Point(1, y))
       }
-      res.appended(vec)
+      res.appended(vec.toVector)
     }
     res
   }
@@ -51,7 +51,7 @@ object Main {
 
   def zone_char(zone: Zone): Char = {
     if (zone.idx < Zone.UNDECIDED_ZONE.idx) {
-      Char(65 + zone.idx)
+      (65 + zone.idx).toChar
     } else {
       '-'
     }
@@ -187,106 +187,89 @@ object Main {
     }
   }
 
-  def explore[F](level: Level, drone: Drone, rate: F): Option[Vector[Action]] = {
-    explore_impl(level, drone, rate).map(_._1)
+  def explore(level: Level, drone: Drone, rate: (Level, Drone, Point) => Double): Option[List[Action]] = {
+    explore_impl(level, drone, Some(rate), None).map(_._1)
   }
 
-  def explore_impl[F](level: Level, drone: Drone, rate: F): Option[(Vector[Action], Point, Double)] = {
+  def explore_impl(level: Level, drone: Drone, rate: Double): Option[(List[Action], Point)] = {
+    explore_impl(level, drone, None, Some(rate)).map(v => (v._1, v._2))
+  }
+
+  def explore_impl(level: Level, drone: Drone, rate: Option[(Level, Drone, Point) => Double], fixedRate: Option[Double]): Option[(List[Action], Point, Double)] = {
     val seen = new mutable.HashSet[Point]()
-    val queue = new Vector[Plan](100)
-    val best: Option[(Vector[Action], Point, Double)] = None
-    val max_len = 5
-    queue.push_back(Plan {
-      plan: VecDeque
-      ()
-      ,
-      pos: drone.pos
-      ,
-      wheels: drone.wheels
-      ,
-      drill: drone.drill
-      ,
-      drilled: mutable.HashSet.default
-      ()
-    })
+    val queue = new ListBuffer[Plan]()
+    var best: Option[(List[Action], Point, Double)] = None
+    var max_len = 5
+    queue.addOne(Plan(
+      pos = drone.pos,
+      wheels = drone.wheels,
+      drill = drone.drill
+    ))
+    var bestFound = false
 
-    loop {
-      if
-      val Some
-      (Plan {
-        plan
-        , pos
-        , wheels
-        , drill
-        , drilled
-      }) = queue.pop_front() {
-        if plan.len() >= max_len {
-          if best.is_some() {
-            break best
-          } else {
-            max_len += 5;
-          }
-        }
+    while (!bestFound && queue.nonEmpty) {
+      val Plan(plan, pos, wheels, drill, drilled) = queue.remove(0)
 
-        val score = if (plan.is_empty()) {
-          0.0
+      if (plan.length >= max_len) {
+        if (best.isDefined) {
+          bestFound = true
         } else {
-          rate(level, drone, pos) / plan.len()
-        }
-
-        if best.is_some() {
-          if score > best.as_ref().unwrap()
-          .2 {
-            best = Some((plan.clone(), pos, score));
-          }
-        } else {
-          if score > 0. {
-            best = Some((plan.clone(), pos, score));
-          }
-        }
-
-        for action in &[Action.LEFT, Action.RIGHT, Action.UP, Action.DOWN, Action.JUMP0, Action.JUMP1, Action.JUMP2] {
-          if
-          val Some((pos2, new_wrapped, new_drilled)) = step(level, drone, & pos, action, wheels > 0, drill > 0, & drilled) {
-            if seen.contains(& pos2) {
-              continue;
-            }
-            seen.insert(pos2);
-            val mut plan2 = plan.clone();
-            plan2.push_back(* action);
-            val mut drilled2 = drilled.clone();
-            for p in new_drilled {
-              drilled2.insert(p);
-            }
-            queue.push_back(Plan {
-              plan: plan2
-              ,
-              pos: pos2
-              ,
-              wheels:
-              if wheels > 1 {
-                wheels - 1
-              } else {
-                0
-              }
-              ,
-              drill:
-              if drill > 1 {
-                drill - 1
-              } else {
-                0
-              }
-              ,
-              drilled: drilled2
-            });
-          }
+          max_len += 5
         }
       }
-      else
-      {
-        break best
+
+      val score = if (plan.isEmpty) {
+        0.0
+      } else {
+        fixedRate.getOrElse(rate.get(level, drone, pos) / plan.length.toDouble)
+      }
+
+      if (best.isDefined) {
+        if (score > best.get._3) {
+          best = Some((plan.toList, pos, score))
+        }
+      } else {
+        if (score > 0.0) {
+          best = Some((plan.toList, pos, score))
+        }
+      }
+
+      for (action <- Action.all) {
+        step(level, drone, pos, action, wheels > 0, drill > 0, drilled) match {
+          case Some((pos2, _, new_drilled)) =>
+            if (!seen.contains(pos2)) {
+              seen.addOne(pos2)
+
+              def plan2 = plan.clone()
+
+              plan2.addOne(action)
+
+              def drilled2 = drilled.clone()
+
+              for (p <- new_drilled) {
+                drilled2.addOne(p)
+              }
+              queue.addOne(Plan(
+                plan = plan2,
+                pos = pos2,
+                wheels = if (wheels > 1) {
+                  wheels - 1
+                } else {
+                  0
+                },
+                drill = if (drill > 1) {
+                  drill - 1
+                } else {
+                  0
+                },
+                drilled = drilled2
+              ))
+            }
+          case _ =>
+        }
       }
     }
+    best
   }
 
   def find_clone_score(level: Level, drone: Drone, pos: Point): Double = {
@@ -297,7 +280,7 @@ object Main {
     }
   }
 
-  def explore_clone(level: Level, drone: Drone, drone_idx: Int): Option[Vector[Action]] = {
+  def explore_clone(level: Level, drone: Drone, drone_idx: Int): Option[List[Action]] = {
     if (drone_idx == 0
       && level.bonuses.values.exists(b => b == Bonus.CLONE)
       && level.collected.getOrElse(Bonus.CLONE, 0) == 0) {
@@ -315,7 +298,7 @@ object Main {
     }
   }
 
-  def explore_spawn(level: Level, drone: Drone, drone_idx: Int): Option[Vector[Action]] = {
+  def explore_spawn(level: Level, drone: Drone, drone_idx: Int): Option[List[Action]] = {
     if (drone_idx == 0 && level.collected.getOrElse(Bonus.CLONE, 0) > 0) {
       explore(level, drone, find_spawn_score)
     } else {
@@ -372,26 +355,26 @@ object Main {
 
             if (!isContinue && (
               drone.activate_wheels(level)
-              || drone.activate_drill(level)
-              || drone.activate_hand(level)
-              || drone.set_beakon(level))) {
+                || drone.activate_drill(level)
+                || drone.activate_hand(level)
+                || drone.set_beakon(level))) {
               isContinue = true
             }
 
-            if(!isContinue) {
+            if (!isContinue) {
               explore_clone(level, drone, drone_idx)
                 .orElse(explore_spawn(level, drone, drone_idx))
                 .orElse(explore(level, drone, max_wrapping)) match {
-                case Some(newplan) => drone.plan = newplan
+                case Some(newplan) => drone.plan = new ListBuffer[Action]().addAll(newplan)
                 case _ =>
-                }
+              }
             }
           }
 
-          if(!isContinue) {
+          if (!isContinue) {
             if (drone.plan.nonEmpty) {
               val action = drone.plan.remove(0)
-              drone.act( action, level)
+              drone.act(action, level)
             } else if (drone.wheels > 0) {
               drone.path += "Z"
             } else {
@@ -411,9 +394,9 @@ object Main {
     paths.mkString("#")
   }
 
-  val DESC_RE: Regex = """.desc$""" r
+  val DESC_RE: Regex = """.desc$""".r
 
-  val SOLUTION_PART_RE: Regex = """[A-Z]""" r
+  val SOLUTION_PART_RE: Regex = """[A-Z]""".r
 
   def solve(filename: String, interactive: Boolean): Unit = {
     val contents = new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8)
@@ -432,7 +415,7 @@ object Main {
     }
   }
 
-  val THREADS_RE: Regex = """--threads=([1-9][0-9]*)""" r
+  val THREADS_RE: Regex = """--threads=([1-9][0-9]*)""".r
 
   def main(args: Array[String]): Unit = {
     val t_start = Instant.now().toEpochMilli
