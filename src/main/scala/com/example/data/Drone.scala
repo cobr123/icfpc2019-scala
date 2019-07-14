@@ -9,7 +9,7 @@ case class Drone(var pos: Point,
                  var wheels: Int = 0,
                  var drill: Int = 0,
                  path: String = "",
-                 var plan: Vector[Action] = Vector(),
+                 var plan: mutable.ListBuffer[Action] = new mutable.ListBuffer[Action](),
                  var zone: Zone = Zone.UNDECIDED_ZONE) {
 
   def wrap_bot(level: Level): Unit = {

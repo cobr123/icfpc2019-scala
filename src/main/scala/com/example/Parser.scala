@@ -152,7 +152,7 @@ object Parser {
 
   val CLONE_RE: Regex = """C(d+,d+)""" r
 
-  def parse_level(file: String): (Level, Vector[Drone]) = {
+  def parse_level(file: String): (Level, List[Drone]) = {
     val fragments = file.split("#").toList
     fragments match {
       case List(walls_str: String, start_str: String, obstacles_str: String, bonuses_str: String) => {
@@ -171,7 +171,7 @@ object Parser {
           val pos = Point(captures.group("X").toInt, captures.group("Y").toInt)
           level.spawns.addOne(pos)
         }
-        (level, Vector(Drone(parse_point(start_str))))
+        (level, List(Drone(parse_point(start_str))))
       }
       case _ => throw new Exception("incomplete file")
     }
