@@ -406,12 +406,12 @@ object Main {
       val solution = solve_impl(level, drones, interactive)
       val score = solution.split("#").map(s => SOLUTION_PART_RE.findAllMatchIn(s).size).max
       val elapsed = Instant.now().toEpochMilli - t_start
-      println("{} \tscore {} \ttime {} ms", filename, score, elapsed)
+      println(s"${filename} \tscore ${score} \ttime ${elapsed} ms")
 
       val filename_sol = DESC_RE.replaceAllIn(filename, ".sol")
       Files.write(Paths.get(filename_sol), solution.getBytes(StandardCharsets.UTF_8))
     } else {
-      println("Failed to read {}", filename)
+      throw new Exception(s"Empty file ${filename}")
     }
   }
 
@@ -438,13 +438,19 @@ object Main {
 
     val tasks = filenames.length
 
-    val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
-    for (filename <- filenames) {
-      ec.execute(new Runnable() {
-        def run: Unit = {
-          solve(filename, interactive)
-        }
-      })
+    if (threads == 1) {
+      for (filename <- filenames) {
+        solve(filename, interactive)
+      }
+    } else {
+      val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
+      for (filename <- filenames) {
+        ec.execute(new Runnable() {
+          def run: Unit = {
+            solve(filename, interactive)
+          }
+        })
+      }
     }
     if (tasks > 1) {
       val elapsed = Instant.now().toEpochMilli - t_start
