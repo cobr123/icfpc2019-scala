@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+cargo build --release
+
+./target/release/icfpc2019 problems/*.desc --threads 4

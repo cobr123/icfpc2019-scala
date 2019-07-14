@@ -420,7 +420,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val t_start = Instant.now().toEpochMilli
     var interactive = false
-    var threads = 1
+    var threads = Runtime.getRuntime().availableProcessors()
     val filenames = new ListBuffer[String]()
 
     for (arg <- args) {
@@ -428,11 +428,11 @@ object Main {
         interactive = true
       } else if (THREADS_RE.matches(arg)) {
         val caps = THREADS_RE.findFirstMatchIn(arg).get
-        threads = caps.group(0).toInt
+        threads = caps.group(1).toInt
       } else if (arg.toLowerCase().endsWith(".desc")) {
         filenames.addOne(arg)
       } else {
-        throw new Exception("cargo run --release [--interactive] [--threads=N] <path/to/problem.desc>")
+        throw new Exception("cargo run [--interactive] [--threads=N] <path/to/problem.desc>")
       }
     }
 
@@ -448,7 +448,7 @@ object Main {
     }
     if (tasks > 1) {
       val elapsed = Instant.now().toEpochMilli - t_start
-      println("Finished {} tasks in {} ms", tasks, elapsed)
+      println(s"Finished ${tasks} tasks in ${elapsed} ms")
     }
   }
 }

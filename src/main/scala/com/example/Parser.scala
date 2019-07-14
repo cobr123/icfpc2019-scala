@@ -9,21 +9,21 @@ import scala.util.matching.Regex
 
 object Parser {
 
-  val POINT_RE: Regex = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
-  val BONUS_RE: Regex = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
-  val SPAWN_RE: Regex = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)""".r
+  val POINT_RE: Regex = """\((\d+),(\d+)\)""".r
+  val BONUS_RE: Regex = """([BFLRC])\((\d+),(\d+)\)""".r
+  val SPAWN_RE: Regex = """\((\d+),(\d+)\)""".r
 
 
   def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
 
   def parse_point(s: String): Point = {
     val captures = POINT_RE.findFirstMatchIn(s).get
-    Point(captures.group("X").toInt, captures.group("Y").toInt)
+    Point(captures.group(1).toInt, captures.group(2).toInt)
   }
 
   def parse_bonus(captures: Regex.Match): (Point, Bonus) = {
-    (Point(captures.group("X").toInt, captures.group("Y").toInt),
-      captures.group("P") match {
+    (Point(captures.group(2).toInt, captures.group(3).toInt),
+      captures.group(1) match {
         case "B" => Bonus.HAND
         case "F" => Bonus.WHEELS
         case "L" => Bonus.DRILL
@@ -128,8 +128,8 @@ object Parser {
   }
 
   def build_level(walls: mutable.HashSet[Point], zones_count: Int): Level = {
-    val height = walls.maxBy(_.y).y + 1
-    val width = walls.maxBy(_.x).x
+    val height = walls.maxByOption(_.y).getOrElse(Point(0, 0)).y + 1
+    val width = walls.maxByOption(_.x).getOrElse(Point(0, 0)).x
     val grid = new ListBuffer[Cell]()
     var empty = 0
     for (y <- 0 until height) {
@@ -152,10 +152,17 @@ object Parser {
 
   val CLONE_RE: Regex = """C(d+,d+)""".r
 
-  def parse_level(file: String): (Level, List[Drone]) = {
-    val fragments = file.split("#").toList
-    fragments match {
-      case List(walls_str: String, start_str: String, obstacles_str: String, bonuses_str: String) => {
+  val FRAGMENTS_RE: Regex = "(.*?)#(.*?)#(.*?)#(.*?)".r
+
+  def parse_level(text: String): (Level, List[Drone]) = {
+    val fragments = FRAGMENTS_RE.findFirstMatchIn(text)
+    FRAGMENTS_RE.findFirstMatchIn(text) match {
+      case Some(matcher) => {
+        val walls_str = matcher.group(1)
+        val start_str = matcher.group(2)
+        val obstacles_str = matcher.group(3)
+        val bonuses_str = matcher.group(4)
+
         val walls = parse_contour(walls_str)
         for (obstacle_str <- obstacles_str.split(";").filter(s => !s.isEmpty)) {
           walls.addAll(parse_contour(obstacle_str))
@@ -168,12 +175,12 @@ object Parser {
           level.bonuses.addOne(pos, bonus)
         }
         for (captures <- SPAWN_RE.findAllMatchIn(bonuses_str)) {
-          val pos = Point(captures.group("X").toInt, captures.group("Y").toInt)
+          val pos = Point(captures.group(1).toInt, captures.group(2).toInt)
           level.spawns.addOne(pos)
         }
         (level, List(Drone(parse_point(start_str))))
       }
-      case _ => throw new Exception("incomplete file")
+      case _ => throw new Exception(s"incomplete file: ${text}")
     }
   }
 }
