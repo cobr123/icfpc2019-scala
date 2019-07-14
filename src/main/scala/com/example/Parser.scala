@@ -3,156 +3,177 @@ package com.example
 import com.example.data._
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import scala.util.Random
+import scala.util.matching.Regex
 
 object Parser {
 
-    val POINT_RE = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
-    val BONUS_RE = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
-    val SPAWN_RE = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)"""r
+  val POINT_RE: Regex = """\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
+  val BONUS_RE: Regex = """(?P<P>[BFLRC])\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
+  val SPAWN_RE: Regex = """X\((?P<X>-?\d+),(?P<Y>-?\d+)\)""" r
 
 
-  def grid_idx(x:Int, y:Int, width:Int):Int = x + y * width
+  def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
 
-  def parse_point(s: String) : Point ={
-    val captures = POINT_RE.captures(s).unwrap();
-    Point(captures["X"].parse.<Int>().unwrap(), captures["Y"].parse.<Int>().unwrap())
+  def parse_point(s: String): Point = {
+    val captures = POINT_RE.findFirstMatchIn(s).get
+    Point(captures.group("X").toInt, captures.group("Y").toInt)
   }
 
-  def parse_bonus(captures: Captures) : (Point, Bonus) ={
-    (Point(captures["X"].parse.<Int>().unwrap(), captures["Y"].parse.<Int>().unwrap()),
-    match &captures["P"] {
-      "B" => { Bonus.HAND }
-      "F" => { Bonus.WHEELS }
-      "L" => { Bonus.DRILL }
-      "R" => { Bonus.TELEPORT }
-      "C" => { Bonus.CLONE }
-      _   => throw new Exception("Unknown bonus")
-    })
+  def parse_bonus(captures: Regex.Match): (Point, Bonus) = {
+    (Point(captures.group("X").toInt, captures.group("Y").toInt),
+      captures.group("P") match {
+        case "B" => Bonus.HAND
+        case "F" => Bonus.WHEELS
+        case "L" => Bonus.DRILL
+        case "R" => Bonus.TELEPORT
+        case "C" => Bonus.CLONE
+        case _ => throw new Exception("Unknown bonus")
+      })
   }
 
-  def parse_contour(s: String) : mutable.HashSet[Point] ={
-    val points: Vector<Point> = POINT_RE.find_iter(s).map(|m| parse_point(m.as_str())).collect();
-    val mut walls: mutable.HashSet<Point> = mutable.HashSet.with_capacity_and_hasher(points.len(), Default.default());
-    for (i, &p1) in points.iter().enumerate() {
-      val p2 = points[(i+1) % points.len()];
-      if p1.x == p2.x { // vercical only
-        for y in if p1.y < p2.y { p1.y .. p2.y } else { p2.y .. p1.y } {
-          walls.insert(Point(p1.x, y));
+  def parse_contour(s: String): mutable.HashSet[Point] = {
+    val points = POINT_RE.findAllMatchIn(s).map(m => parse_point(m.toString())).toList
+    val walls = new mutable.HashSet[Point]()
+    for ((p1, i) <- points.zipWithIndex) {
+      val p2 = points((i + 1) % points.length)
+      if (p1.x == p2.x) { // vercical only
+        for (y <- if (p1.y < p2.y) {
+          p1.y until p2.y
+        } else {
+          p2.y until p1.y
+        }) {
+          walls.add(Point(p1.x, y))
         }
       }
     }
     walls
   }
 
-  def wall_on_left(x: Int, y: Int, walls: Vector[Line]) : Boolean ={
+  def wall_on_left(x: Int, y: Int, walls: Vector[Line]): Boolean = {
     walls.exists(l => l.from.x == x
-    && l.from.y <= y
-    && l.to.y >= (y + 1) )
+      && l.from.y <= y
+      && l.to.y >= (y + 1))
   }
 
-  def weights(grid: &[Cell], width: Int, height: Int) : Vector<u8> ={
-    val mut weights: Vector<u8> = Vector.with_capacity(grid.len());
-    for y in 0..height {
-      for x in 0..width {
-        val mut sum: u8 = 0;
-        for (dx, dy) in &[(0,1),(0,-1),(-1,0),(1,0),(1,1),(-1,-1),(-1,1),(1,-1)] {
-          val x2 = x + dx;
-          val y2 = y + dy;
-          if x2 >= 0 && x2 < width && y2 >= 0 && y2 < height && grid[grid_idx(x2, y2, width)] == Cell.BLOCKED {
-            sum += 1;
+  def weights(grid: List[Cell], width: Int, height: Int): List[Int] = {
+    val weights = new ListBuffer[Int]()
+    for (y <- 0 until height) {
+      for (x <- 0 until width) {
+        var sum = 0
+        for ((dx, dy) <- List((0, 1), (0, -1), (-1, 0), (1, 0), (1, 1), (-1, -1), (-1, 1), (1, -1))) {
+          val x2 = x + dx
+          val y2 = y + dy
+          if (x2 >= 0 && x2 < width && y2 >= 0 && y2 < height && grid(grid_idx(x2, y2, width)) == Cell.BLOCKED) {
+            sum += 1
           }
         }
-        weights.push(sum);
+        weights += sum
       }
     }
-    weights
+    assert(grid.length == weights.length)
+    weights.toList
   }
 
-  def zones(zones_count: Int, grid: &[Cell], width: Int, height: Int) : (Vector<u8>, Vector<Int>)= {
-    val len = (width * height) ;
+  def zones(zones_count: Int, grid: List[Cell], width: Int, height: Int): (List[Zone], List[Zone]) = {
+    val len = width * height
 
-    val mut zones: Vector<u8> = Vector.with_capacity(len);
-    for i in 0..len { zones.push(UNDECIDED_ZONE); }
+    val zones = new ListBuffer[Zone]()
+    for (i <- 0 until len) {
+      zones += Zone.UNDECIDED_ZONE
+    }
 
-    val mut zones_empty: Vector<Int> = Vector.with_capacity(zones_count);
-    for i in 0..zones_count { zones_empty.push(0); }
+    val zones_empty = new ListBuffer[Int]()
+    for (i <- 0 until zones_count) {
+      zones_empty += 0
+    }
 
-    val mut queue: VecDeque<(Point, u8)> = VecDeque.with_capacity(len);
-    val mut rng = rand_pcg.Pcg32.seed_from_u64(42);
-    while queue.len() < zones_count {
-      val x = rng.gen_range(0, width);
-      val y = rng.gen_range(0, height);
-      val idx = grid_idx(x, y, width);
-      val point = Point(x, y);
-      if grid[idx] == Cell.EMPTY && queue.iter().find(|(p, _)| *p == point).is_none() {
-        queue.push_back((point, queue.len() as u8));
+    val queue = new ListBuffer[(Point, Int)]()
+    val rng = new Random(42)
+    while (queue.length < zones_count) {
+      val x = rng.nextInt(width)
+      val y = rng.nextInt(height)
+      val idx = grid_idx(x, y, width)
+      val point = Point(x, y)
+      if (grid(idx) == Cell.EMPTY && !queue.exists(p => p._1 == point)) {
+        queue.addOne((point, queue.length))
       }
     }
 
-    while val Some((Point{x, y}, zone)) = queue.pop_front() {
-      val idx = grid_idx(x, y, width);
-      if zones[idx] == UNDECIDED_ZONE && grid[idx] == Cell.EMPTY {
-        zones_empty[zone ] += 1;
-        zones[idx] = zone;
-        if y + 1 < height { queue.push_back((Point(x, y + 1), zone)); }
-        if y > 0          { queue.push_back((Point(x, y - 1), zone)); }
-        if x + 1 < width  { queue.push_back((Point(x + 1, y), zone)); }
-        if x > 0          { queue.push_back((Point(x - 1, y), zone)); }
+    while (queue.nonEmpty) {
+      queue.remove(0) match {
+        case (Point(x, y), zone) =>
+          val idx = grid_idx(x, y, width)
+          if (zones(idx) == Zone.UNDECIDED_ZONE && grid(idx) == Cell.EMPTY) {
+            zones_empty(zone) += 1
+            zones(idx) = Zone(zone)
+            if (y + 1 < height) {
+              queue.addOne((Point(x, y + 1), zone))
+            }
+            if (y > 0) {
+              queue.addOne((Point(x, y - 1), zone))
+            }
+            if (x + 1 < width) {
+              queue.addOne((Point(x + 1, y), zone))
+            }
+            if (x > 0) {
+              queue.addOne((Point(x - 1, y), zone))
+            }
+          }
       }
     }
 
-    (zones, zones_empty)
+    (zones.toList, zones_empty.map(Zone(_)).toList)
   }
 
-  def build_level(walls: &mutable.HashSet<Point>, zones_count: Int) : Level ={
-    val height = walls.iter().max_by_key(|p| p.y).unwrap().y + 1;
-    val width = walls.iter().max_by_key(|p| p.x).unwrap().x;
-    val mut grid = Vector.with_capacity((width * height) );
-    val mut empty = 0;
-    for y in 0..height {
-      val mut last_cell = Cell.BLOCKED;
-      for x in 0..width {
-        if walls.contains(&Point(x, y)) {
-          last_cell = if last_cell == Cell.EMPTY { Cell.BLOCKED } else { Cell.EMPTY };
+  def build_level(walls: mutable.HashSet[Point], zones_count: Int): Level = {
+    val height = walls.maxBy(_.y).y + 1
+    val width = walls.maxBy(_.x).x
+    val grid = new ListBuffer[Cell]()
+    var empty = 0
+    for (y <- 0 until height) {
+      var last_cell: Cell = Cell.BLOCKED
+      for (x <- 0 until width) {
+        if (walls.contains(Point(x, y))) {
+          last_cell = if (last_cell == Cell.EMPTY) Cell.BLOCKED else Cell.EMPTY
         }
-        grid.push(last_cell);
-        if last_cell == Cell.EMPTY { empty += 1; }
+        grid.addOne(last_cell)
+        if (last_cell == Cell.EMPTY) {
+          empty += 1
+        }
       }
-      assert_eq!(walls.contains(&Point(width, y)), Cell.EMPTY == last_cell);
+      assert(walls.contains(Point(width, y)) && Cell.EMPTY == last_cell)
     }
-    val weights = weights(&grid, width, height);
-    val (zones, zones_empty) = zones(zones_count, &grid, width, height);
-    Level {
-      grid, weights, zones, width, height, empty, zones_empty,
-      spawns:    mutable.HashSet.default(),
-      beakons:   Vector(),
-      bonuses:   mutable.HashMap.default(),
-      collected: mutable.HashMap.default()
-    }
+    val weights = weights(grid, width, height)
+    val (zones, zones_empty) = zones(zones_count, grid, width, height)
+    Level(grid.toVector, weights, zones, width, height, empty, zones_empty)
   }
 
-  def parse_level(file: String) : (Level, Vector<Drone>) ={
-    val fragments: Vector<String> = file.split("#").collect();
-    match *fragments {
-      [walls_str, start_str, obstacles_str, bonuses_str] => {
-        val mut walls = parse_contour(walls_str);
-        for obstacle_str in obstacles_str.split(";").filter(|s| !s.is_empty()) {
-          walls.extend(parse_contour(obstacle_str));
-        }
-        val clones = Regex(r"C\(\d+,\d+\)").unwrap().find_iter(bonuses_str).count();
-        val mut level = build_level(&walls, clones + 1);
+  val CLONE_RE: Regex = """C(d+,d+)""" r
 
-        for captures in BONUS_RE.captures_iter(bonuses_str) {
-          val (pos, bonus) = parse_bonus(captures);
-          level.bonuses.insert(pos, bonus);
+  def parse_level(file: String): (Level, Vector[Drone]) = {
+    val fragments = file.split("#").toList
+    fragments match {
+      case List(walls_str: String, start_str: String, obstacles_str: String, bonuses_str: String) => {
+        val walls = parse_contour(walls_str)
+        for (obstacle_str <- obstacles_str.split(";").filter(s => !s.isEmpty)) {
+          walls.addAll(parse_contour(obstacle_str))
         }
-        for captures in SPAWN_RE.captures_iter(bonuses_str) {
-          val pos = Point(captures["X"].parse.<Int>().unwrap(), captures["Y"].parse.<Int>().unwrap());
-          level.spawns.insert(pos);
+        val clones = CLONE_RE.findAllMatchIn(bonuses_str).size
+        val level = build_level(walls, clones + 1)
+
+        for (captures <- BONUS_RE.findAllMatchIn(bonuses_str)) {
+          val (pos, bonus) = parse_bonus(captures)
+          level.bonuses.addOne(pos, bonus)
         }
-        (level, vec![Drone(parse_point(start_str))])
+        for (captures <- SPAWN_RE.findAllMatchIn(bonuses_str)) {
+          val pos = Point(captures.group("X").toInt, captures.group("Y").toInt)
+          level.spawns.addOne(pos)
+        }
+        (level, Vector(Drone(parse_point(start_str))))
       }
-      _ => throw new Exception("incomplete file")
+      case _ => throw new Exception("incomplete file")
     }
   }
 }

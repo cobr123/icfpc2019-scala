@@ -9,10 +9,10 @@ case class Level(grid: Vector[Cell],
                  height: Int,
                  empty: Int,
                  zones_empty: Vector[Int],
-                 spawns: mutable.HashSet[Point],
-                 beakons: mutable.ListBuffer[Point],
-                 bonuses: mutable.HashMap[Point, Bonus],
-                 collected: mutable.HashMap[Bonus, Int]) {
+                 spawns: mutable.HashSet[Point] = new mutable.HashSet(),
+                 beakons: mutable.ListBuffer[Point] = new mutable.ListBuffer[Point](),
+                 bonuses: mutable.HashMap[Point, Bonus] = new mutable.HashMap(),
+                 collected: mutable.HashMap[Bonus, Int] = new mutable.HashMap()) {
 
   def grid_idx(x: Int, y: Int): Int = x + y * width
 
