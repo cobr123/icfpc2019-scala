@@ -432,7 +432,7 @@ object Main {
       } else if (arg.toLowerCase().endsWith(".desc")) {
         filenames.addOne(arg)
       } else {
-        throw new Exception("cargo run [--interactive] [--threads=N] <path/to/problem.desc>")
+        throw new Exception("java -jar icfpc2019-scala.jar [--interactive] [--threads=N] <path/to/problem.desc>")
       }
     }
 
