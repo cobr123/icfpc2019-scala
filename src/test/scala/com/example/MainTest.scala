@@ -1,8 +1,9 @@
 package com.example
 
-import java.io.File
+import java.nio.file.Paths
 
 import org.scalatest.FunSuite
+
 
 class MainTest extends FunSuite {
 
@@ -35,6 +36,7 @@ class MainTest extends FunSuite {
   }
 
   def getDescFiles: Array[String] = {
-    new File("/home/cobr123/IdeaProjects/icfpc2019-scala/problems/").listFiles.filter(_.isFile).filter(_.getName.endsWith(".desc")).map(_.getAbsolutePath)
+    val projectDir = new java.io.File(".").getAbsolutePath
+    Paths.get(projectDir, "problems").toFile.listFiles.filter(_.isFile).filter(_.getName.endsWith(".desc")).map(_.getAbsolutePath)
   }
 }
