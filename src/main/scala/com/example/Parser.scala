@@ -143,7 +143,7 @@ object Parser {
           empty += 1
         }
       }
-      assert(walls.contains(Point(width, y)) && Cell.EMPTY == last_cell)
+      assert(walls.contains(Point(width, y)) == (Cell.EMPTY == last_cell))
     }
     val newweights = weights(grid.toList, width, height)
     val (zones_all, zones_empty) = zones(zones_count, grid.toList, width, height)
