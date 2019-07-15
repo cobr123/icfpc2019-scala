@@ -27,27 +27,27 @@ object Main {
     }
   }
 
-  def hand_blockers(): Vector[Vector[Point]] = {
-    val res = Vector[Vector[Point]]()
-    res.appended(Vector(Point(1, -1)))
-    res.appended(Vector(Point(1, 0)))
-    res.appended(Vector(Point(1, 1)))
+  def hand_blockers(): List[List[Point]] = {
+    val res = new ListBuffer[List[Point]]()
+    res.addOne(List(Point(1, -1)))
+    res.addOne(List(Point(1, 0)))
+    res.addOne(List(Point(1, 1)))
     for (maxy <- 2 until 19) {
       val vec = new ListBuffer[Point]()
       for (y <- 1 until (maxy / 2 + 1)) {
-        vec.appended(Point(0, y))
+        vec.addOne(Point(0, y))
       }
       for (y <- (maxy + 1) / 2 until (maxy + 1)) {
-        vec.appended(Point(1, y))
+        vec.addOne(Point(1, y))
       }
-      res.appended(vec.toVector)
+      res.addOne(vec.toList)
     }
-    res
+    res.toList
   }
 
   // for hands with x == 1 and y == -1..18
   // indexed by y+1: y == -1 -> [0]; y == 0 -> [1], ...
-  val HAND_BLOCKERS: Vector[Vector[Point]] = hand_blockers()
+  val HAND_BLOCKERS: List[List[Point]] = hand_blockers()
 
   def zone_char(zone: Zone): Char = {
     if (zone.idx < Zone.UNDECIDED_ZONE.idx) {
