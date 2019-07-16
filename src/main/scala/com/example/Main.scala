@@ -10,7 +10,7 @@ import com.example.data._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scala.io.Source
+import util.control.Breaks._
 import scala.util.matching.Regex
 
 object Main {
@@ -332,36 +332,37 @@ object Main {
     val drones = new ListBuffer[Drone]()
     drones.addAll(initialDrones)
     drones(0).wrap_bot(level)
-    while (level.empty > 0) {
-      if (interactive) {
-        print_state(level, drones.toList)
-      }
-      for (drone_idx <- 0 until drones.length) {
-        if (level.empty > 0) {
+    breakable {
+      while (level.empty > 0) {
+        if (interactive) {
+          print_state(level, drones.toList)
+        }
+        for (drone_idx <- 0 until drones.length) {
+          if (level.empty <= 0) {
+            break
+          }
           val taken = drones.map(_.zone).toList
           val drone = drones(drone_idx)
           drone.collect(level)
           drone.wear_off()
           drone.choose_zone(taken, level)
 
-          var isContinue = false
-          if (drone.plan.isEmpty) {
-            drone.reduplicate(level) match {
-              case Some(clone) =>
-                drones.addOne(clone)
-                isContinue = true
-              case _ =>
-            }
+          breakable {
+            if (drone.plan.isEmpty) {
+              drone.reduplicate(level) match {
+                case Some(clone) =>
+                  drones.addOne(clone)
+                  break //continue
+                case _ =>
+              }
 
-            if (!isContinue && (
-              drone.activate_wheels(level)
+              if (drone.activate_wheels(level)
                 || drone.activate_drill(level)
                 || drone.activate_hand(level)
-                || drone.set_beakon(level))) {
-              isContinue = true
-            }
+                || drone.set_beakon(level)) {
+                break //continue
+              }
 
-            if (!isContinue) {
               explore_clone(level, drone, drone_idx)
                 .orElse(explore_spawn(level, drone, drone_idx))
                 .orElse(explore(level, drone, max_wrapping)) match {
@@ -369,9 +370,7 @@ object Main {
                 case _ =>
               }
             }
-          }
 
-          if (!isContinue) {
             if (drone.plan.nonEmpty) {
               val action = drone.plan.remove(0)
               drone.act(action, level)
