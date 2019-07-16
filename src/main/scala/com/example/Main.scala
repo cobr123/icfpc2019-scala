@@ -239,12 +239,9 @@ object Main {
           case Some((pos2, _, new_drilled)) =>
             if (!seen.contains(pos2)) {
               seen.addOne(pos2)
-
-              def plan2 = plan.clone()
-
+              val plan2 = plan.clone()
               plan2.addOne(action)
-
-              def drilled2 = drilled.clone()
+              val drilled2 = drilled.clone()
 
               for (p <- new_drilled) {
                 drilled2.addOne(p)
@@ -445,7 +442,7 @@ object Main {
       val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
       for (filename <- filenames) {
         ec.execute(new Runnable() {
-          def run: Unit = {
+          def run(): Unit = {
             solve(filename, interactive)
           }
         })

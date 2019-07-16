@@ -63,10 +63,10 @@ case class Drone(var pos: Point,
 
   def wear_off(): Unit = {
     if (wheels > 0) {
-      wheels -= 1;
+      wheels -= 1
     }
     if (drill > 0) {
-      drill -= 1;
+      drill -= 1
     }
   }
 
