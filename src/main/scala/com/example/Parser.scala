@@ -155,7 +155,6 @@ object Parser {
   val FRAGMENTS_RE: Regex = "(.*?)#(.*?)#(.*?)#(.*?)".r
 
   def parse_level(text: String): (Level, List[Drone]) = {
-    val fragments = FRAGMENTS_RE.findFirstMatchIn(text)
     FRAGMENTS_RE.findFirstMatchIn(text) match {
       case Some(matcher) => {
         val walls_str = matcher.group(1)
