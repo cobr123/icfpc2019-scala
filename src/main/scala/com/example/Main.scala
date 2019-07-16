@@ -205,64 +205,65 @@ object Main {
       wheels = drone.wheels,
       drill = drone.drill
     ))
-    var bestFound = false
 
-    while (!bestFound && queue.nonEmpty) {
-      val Plan(plan, pos, wheels, drill, drilled) = queue.remove(0)
+    breakable {
+      while (queue.nonEmpty) {
+        val Plan(plan, pos, wheels, drill, drilled) = queue.remove(0)
 
-      if (plan.length >= max_len) {
-        if (best.isDefined) {
-          bestFound = true
+        if (plan.length >= max_len) {
+          if (best.isDefined) {
+            break
+          } else {
+            max_len += 5
+          }
+        }
+
+        val score = if (plan.isEmpty) {
+          0.0
         } else {
-          max_len += 5
+          fixedRate.getOrElse(rate.get(level, drone, pos) / plan.length.toDouble)
         }
-      }
 
-      val score = if (plan.isEmpty) {
-        0.0
-      } else {
-        fixedRate.getOrElse(rate.get(level, drone, pos) / plan.length.toDouble)
-      }
-
-      if (best.isDefined) {
-        if (score > best.get._3) {
-          best = Some((plan.toList, pos, score))
+        if (best.isDefined) {
+          if (score > best.get._3) {
+            best = Some((plan.toList, pos, score))
+          }
+        } else {
+          if (score > 0.0) {
+            best = Some((plan.toList, pos, score))
+          }
         }
-      } else {
-        if (score > 0.0) {
-          best = Some((plan.toList, pos, score))
-        }
-      }
 
-      for (action <- Action.all) {
-        step(level, drone, pos, action, wheels > 0, drill > 0, drilled) match {
-          case Some((pos2, _, new_drilled)) =>
-            if (!seen.contains(pos2)) {
-              seen.addOne(pos2)
-              val plan2 = plan.clone()
-              plan2.addOne(action)
-              val drilled2 = drilled.clone()
+        for (action <- Action.all) {
+          step(level, drone, pos, action, wheels > 0, drill > 0, drilled) match {
+            case Some((pos2, _, new_drilled)) =>
+              if (!seen.contains(pos2)) {
+                seen.addOne(pos2)
+                val plan2 = plan.clone()
+                plan2.addOne(action)
+                val drilled2 = drilled.clone()
 
-              for (p <- new_drilled) {
-                drilled2.addOne(p)
+                for (p <- new_drilled) {
+                  drilled2.addOne(p)
+                }
+                queue.addOne(Plan(
+                  plan = plan2,
+                  pos = pos2,
+                  wheels = if (wheels > 1) {
+                    wheels - 1
+                  } else {
+                    0
+                  },
+                  drill = if (drill > 1) {
+                    drill - 1
+                  } else {
+                    0
+                  },
+                  drilled = drilled2
+                ))
               }
-              queue.addOne(Plan(
-                plan = plan2,
-                pos = pos2,
-                wheels = if (wheels > 1) {
-                  wheels - 1
-                } else {
-                  0
-                },
-                drill = if (drill > 1) {
-                  drill - 1
-                } else {
-                  0
-                },
-                drilled = drilled2
-              ))
-            }
-          case _ =>
+            case _ =>
+          }
         }
       }
     }
