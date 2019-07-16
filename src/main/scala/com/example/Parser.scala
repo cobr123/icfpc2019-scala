@@ -44,7 +44,7 @@ object Parser {
         } else {
           p2.y until p1.y
         }) {
-          walls.add(Point(p1.x, y))
+          walls.addOne(Point(p1.x, y))
         }
       }
     }

@@ -106,7 +106,7 @@ case class Drone(var pos: Point,
       Main.update(level.collected, Bonus.HAND, -1)
       val new_hand = Point(1, hands.last.y + 1)
       path += s"B(${new_hand.x},${new_hand.y})"
-      hands.appended(new_hand)
+      hands.addOne(new_hand)
       true
     } else {
       false
@@ -117,7 +117,7 @@ case class Drone(var pos: Point,
     if (level.collected.getOrElse(Bonus.TELEPORT, 0) > 0 && level.beakons.forall(b => (b.x - pos.x).abs + (b.y - pos.y).abs >= 50)) {
       Main.update(level.collected, Bonus.TELEPORT, -1)
       path += "R"
-      level.beakons.appended(pos)
+      level.beakons.addOne(pos)
       true
     } else {
       false

@@ -133,7 +133,7 @@ object Main {
       if (is_reaching(level, pos, hand)) {
         val hand_pos = Point(pos.x + hand.x, pos.y + hand.y)
         if (level.get_cell(hand_pos.x, hand_pos.y) == Cell.EMPTY) {
-          wrapped.add(hand_pos)
+          wrapped.addOne(hand_pos)
         }
       }
     }
@@ -146,14 +146,14 @@ object Main {
       val new_drilled = new mutable.HashSet[Point]()
       would_wrap(level, drone, to, new_wrapped)
       if (withDrill && !drilled.contains(to) && !level.walkable(to.x, to.y)) {
-        new_drilled.add(to)
+        new_drilled.addOne(to)
       }
       if (withWheels) {
         val to2 = Point(to.x + dx, to.y + dy)
         if (drilled.contains(to2) || (withDrill && level.valid(to2.x, to2.y)) || level.walkable(to2.x, to2.y)) {
           would_wrap(level, drone, to2, new_wrapped)
           if (withDrill && !drilled.contains(to2) && level.valid(to2.x, to2.y) && !level.walkable(to2.x, to2.y)) {
-            new_drilled.add(to2)
+            new_drilled.addOne(to2)
           }
           to = to2
         }
