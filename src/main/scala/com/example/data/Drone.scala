@@ -30,14 +30,17 @@ case class Drone(var pos: Point,
       } else {
         not_empty
       }
-      val rate = if (level.get_cell(pos.x, pos.y) == Cell.EMPTY && looking_in.contains(level.get_zone(pos.x, pos.y))) {
-        1.0
-      } else {
-        0.0
+
+      def rate(level: Level, drone: Drone, pos: Point): Double = {
+        if (level.get_cell(pos.x, pos.y) == Cell.EMPTY && looking_in.contains(level.get_zone(pos.x, pos.y))) {
+          1.0
+        } else {
+          0.0
+        }
       }
 
       Main.explore_impl(level, this, rate) match {
-        case Some((newplan, newpos)) =>
+        case Some((newplan, newpos, _)) =>
           zone = level.get_zone(newpos.x, newpos.y)
           plan = new ListBuffer[Action]().addAll(newplan)
         case _ => throw new Exception("No zone left to choose")

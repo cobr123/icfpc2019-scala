@@ -188,14 +188,10 @@ object Main {
   }
 
   def explore(level: Level, drone: Drone, rate: (Level, Drone, Point) => Double): Option[List[Action]] = {
-    explore_impl(level, drone, Some(rate), None).map(_._1)
+    explore_impl(level, drone, rate).map(_._1)
   }
 
-  def explore_impl(level: Level, drone: Drone, rate: Double): Option[(List[Action], Point)] = {
-    explore_impl(level, drone, None, Some(rate)).map(v => (v._1, v._2))
-  }
-
-  def explore_impl(level: Level, drone: Drone, rate: Option[(Level, Drone, Point) => Double], fixedRate: Option[Double]): Option[(List[Action], Point, Double)] = {
+  def explore_impl(level: Level, drone: Drone, rate: (Level, Drone, Point) => Double): Option[(List[Action], Point, Double)] = {
     val seen = new mutable.HashSet[Point]()
     val queue = new ListBuffer[Plan]()
     var best: Option[(List[Action], Point, Double)] = None
@@ -221,7 +217,7 @@ object Main {
         val score = if (plan.isEmpty) {
           0.0
         } else {
-          fixedRate.getOrElse(rate.get(level, drone, pos) / plan.length.toDouble)
+          rate(level, drone, pos) / plan.length.toDouble
         }
 
         if (best.isDefined) {
