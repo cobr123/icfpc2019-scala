@@ -80,12 +80,12 @@ object Parser {
     val len = width * height
 
     val zones = new ListBuffer[Zone]()
-    for (i <- 0 until len) {
+    for (_ <- 0 until len) {
       zones += Zone.UNDECIDED_ZONE
     }
 
     val zones_empty = new ListBuffer[Int]()
-    for (i <- 0 until zones_count) {
+    for (_ <- 0 until zones_count) {
       zones_empty += 0
     }
 
@@ -156,7 +156,7 @@ object Parser {
 
   def parse_level(text: String): (Level, List[Drone]) = {
     FRAGMENTS_RE.findFirstMatchIn(text) match {
-      case Some(matcher) => {
+      case Some(matcher) =>
         val walls_str = matcher.group(1)
         val start_str = matcher.group(2)
         val obstacles_str = matcher.group(3)
@@ -178,8 +178,7 @@ object Parser {
           level.spawns.addOne(pos)
         }
         (level, List(Drone(parse_point(start_str))))
-      }
-      case _ => throw new Exception(s"incomplete file: ${text}")
+      case _ => throw new Exception(s"incomplete file: $text")
     }
   }
 }

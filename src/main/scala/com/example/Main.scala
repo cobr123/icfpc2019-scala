@@ -93,7 +93,7 @@ object Main {
                 case Bonus.TELEPORT => "R"
                 case Bonus.CLONE => "C"
               }
-            case _ => {
+            case _ =>
               if (level.spawns.contains(point)) {
                 "X"
               } else {
@@ -102,7 +102,6 @@ object Main {
                   case _ => zone_char(level.get_zone(x, y))
                 }
               }
-            }
           }
         }
         print("""{}{}\x1B[0m""", bg, ch)
@@ -399,12 +398,12 @@ object Main {
       val solution = solve_impl(level, drones, interactive)
       val score = solution.split("#").map(s => SOLUTION_PART_RE.findAllMatchIn(s).size).max
       val elapsed = Instant.now().toEpochMilli - t_start
-      println(s"${filename} \tscore ${score} \ttime ${elapsed} ms")
+      println(s"$filename \tscore $score \ttime $elapsed ms")
 
       val filename_sol = DESC_RE.replaceAllIn(filename, ".sol")
       Files.write(Paths.get(filename_sol), solution.getBytes(StandardCharsets.UTF_8))
     } else {
-      throw new Exception(s"Empty file ${filename}")
+      throw new Exception(s"Empty file $filename")
     }
   }
 
@@ -413,7 +412,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val t_start = Instant.now().toEpochMilli
     var interactive = false
-    var threads = Runtime.getRuntime().availableProcessors()
+    var threads = Runtime.getRuntime.availableProcessors()
     val filenames = new ListBuffer[String]()
 
     for (arg <- args) {
@@ -438,16 +437,14 @@ object Main {
     } else {
       val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
       for (filename <- filenames) {
-        ec.execute(new Runnable() {
-          def run(): Unit = {
-            solve(filename, interactive)
-          }
+        ec.execute(() => {
+          solve(filename, interactive)
         })
       }
     }
     if (tasks > 1) {
       val elapsed = Instant.now().toEpochMilli - t_start
-      println(s"Finished ${tasks} tasks in ${elapsed} ms")
+      println(s"Finished $tasks tasks in $elapsed ms")
     }
   }
 }

@@ -7,7 +7,7 @@ class ParserTest extends FunSuite {
 
   test("parseLevelEmpty1") {
     val thrown = intercept[Exception] {
-      val parsed = Parser.parse_level("")
+      Parser.parse_level("")
     }
     assert(thrown.getMessage === "incomplete file: ")
   }

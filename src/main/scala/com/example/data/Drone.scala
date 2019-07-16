@@ -158,7 +158,7 @@ case class Drone(var pos: Point,
         for (p <- new_drilled) {
           level.drill_cell(p.x, p.y)
         }
-      case _ => throw new Exception(s"Unwalkable from (${pos.x},${pos.y}) ${action}")
+      case _ => throw new Exception(s"Unwalkable from (${pos.x},${pos.y}) $action")
     }
   }
 }
