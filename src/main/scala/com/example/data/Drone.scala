@@ -23,7 +23,7 @@ case class Drone(var pos: Point,
 
   def choose_zone(taken: List[Zone], level: Level): Boolean = {
     if (zone == Zone.UNDECIDED_ZONE || level.zones_empty(zone.idx) == 0) {
-      val not_empty = level.zones_empty.filter(z => z > 0).toList
+      val not_empty = level.zones_empty.zipWithIndex.filter { case (c,z) => c > 0 }.map { case (c,z) => z }.toList
       val not_taken = not_empty.filter(z => !taken.contains(z))
       val looking_in = if (not_taken.nonEmpty) {
         not_taken
@@ -32,7 +32,7 @@ case class Drone(var pos: Point,
       }
 
       def rate(level: Level, drone: Drone, pos: Point): Double = {
-        if (level.get_cell(pos.x, pos.y) == Cell.EMPTY && looking_in.contains(level.get_zone(pos.x, pos.y))) {
+        if (level.get_cell(pos.x, pos.y) == Cell.EMPTY && looking_in.contains(level.get_zone(pos.x, pos.y).idx)) {
           1.0
         } else {
           0.0
