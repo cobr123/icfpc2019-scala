@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import java.time.Instant
 import java.util.concurrent.Executors
+import java.util.concurrent.CompletableFuture
 
 import com.example.data._
 
@@ -436,11 +437,9 @@ object Main {
       }
     } else {
       val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
-      for (filename <- filenames) {
-        ec.execute(() => {
-          solve(filename, interactive)
-        })
-      }
+      val futures = for (filename <- filenames)
+        yield CompletableFuture.runAsync(() => { solve(filename, interactive) })
+      CompletableFuture.allOf(futures.toList:_*).join()
     }
     if (tasks > 1) {
       val elapsed = Instant.now().toEpochMilli - t_start
