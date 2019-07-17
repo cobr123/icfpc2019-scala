@@ -16,8 +16,8 @@ object Parser {
 
   def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
 
-  def parse_point(s: String): Point = {
-    val captures = POINT_RE.findFirstMatchIn(s).get
+  def parse_point(text: String): Point = {
+    val captures = POINT_RE.findFirstMatchIn(text).get
     Point(captures.group(1).toInt, captures.group(2).toInt)
   }
 
@@ -154,7 +154,7 @@ object Parser {
 
   val CLONE_RE: Regex = """C(d+,d+)""".r
 
-  val FRAGMENTS_RE: Regex = "(.*?)#(.*?)#(.*?)#(.*?)".r
+  val FRAGMENTS_RE: Regex = "([^#]*)#([^#]*)#([^#]*)#([^#]*)".r
 
   def parse_level(text: String): (Level, List[Drone]) = {
     FRAGMENTS_RE.findFirstMatchIn(text) match {
@@ -169,7 +169,19 @@ object Parser {
           walls.addAll(parse_contour(obstacle_str))
         }
         val clones = CLONE_RE.findAllMatchIn(bonuses_str).size
-        val level = build_level(walls, clones + 1)
+        val level = if (walls.nonEmpty) {
+          build_level(walls, clones + 1)
+        } else {
+          Level(
+            grid = Array.empty,
+            weights = Array.empty,
+            zones = Array.empty,
+            width = 0,
+            height = 0,
+            empty = 0,
+            zones_empty = mutable.ArrayBuffer.empty
+          )
+        }
 
         for (captures <- BONUS_RE.findAllMatchIn(bonuses_str)) {
           val (pos, bonus) = parse_bonus(captures)

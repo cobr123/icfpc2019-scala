@@ -1,6 +1,7 @@
 package com.example
 
-import java.nio.file.Paths
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
 
 import org.scalatest.FunSuite
 
@@ -17,6 +18,12 @@ class MainTest extends FunSuite {
 
   test("run1 interactive") {
     Main.main(Array[String]("--threads=1", "--interactive", getDescFiles.head))
+  }
+
+  test("run1 last") {
+    Main.main(Array[String]("--threads=1", getDescFiles.last))
+    val contents = new String(Files.readAllBytes(Paths.get(getDescFiles.last.replace(".desc", ".sol"))), StandardCharsets.UTF_8)
+    assertResult(contents.length)("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDWWWWDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDSSSSDDDDDSSSSSSSSSSSDDDSSDDSSSSSSDSDDSDDDDDDDSSSDDDDDWWDDDDDWDDDDDDDDDDDDDDDDDDDDDDDDWWWWWWWWB".length)
   }
 
   test("run interactive all") {
