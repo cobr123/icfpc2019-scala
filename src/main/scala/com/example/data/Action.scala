@@ -19,5 +19,5 @@ object Action {
 
   case object JUMP2 extends Action
 
-  val all: List[Action] = List(Action.LEFT, Action.RIGHT, Action.UP, Action.DOWN, Action.JUMP0, Action.JUMP1, Action.JUMP2)
+  val all: Array[Action] = Array(Action.LEFT, Action.RIGHT, Action.UP, Action.DOWN, Action.JUMP0, Action.JUMP1, Action.JUMP2)
 }
