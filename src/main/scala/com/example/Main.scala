@@ -28,11 +28,11 @@ object Main {
     }
   }
 
-  def hand_blockers(): List[List[Point]] = {
-    val res = new ListBuffer[List[Point]]()
-    res.addOne(List(Point(1, -1)))
-    res.addOne(List(Point(1, 0)))
-    res.addOne(List(Point(1, 1)))
+  def hand_blockers(): Array[Array[Point]] = {
+    val res = new ListBuffer[Array[Point]]()
+    res.addOne(Array(Point(1, -1)))
+    res.addOne(Array(Point(1, 0)))
+    res.addOne(Array(Point(1, 1)))
     for (maxy <- 2 until 19) {
       val vec = new ListBuffer[Point]()
       for (y <- 1 until (maxy / 2 + 1)) {
@@ -41,14 +41,14 @@ object Main {
       for (y <- (maxy + 1) / 2 until (maxy + 1)) {
         vec.addOne(Point(1, y))
       }
-      res.addOne(vec.toList)
+      res.addOne(vec.toArray)
     }
-    res.toList
+    res.toArray
   }
 
   // for hands with x == 1 and y == -1..18
   // indexed by y+1: y == -1 -> [0]; y == 0 -> [1], ...
-  val HAND_BLOCKERS: List[List[Point]] = hand_blockers()
+  val HAND_BLOCKERS: Array[Array[Point]] = hand_blockers()
 
   def zone_char(zone: Zone): String = {
     if (zone.idx > Zone.UNDECIDED_ZONE.idx) {
