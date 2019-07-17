@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import java.time.Instant
 import java.util.concurrent.Executors
+import java.util.concurrent.CompletableFuture
 
 import com.example.data._
 
@@ -49,11 +50,11 @@ object Main {
   // indexed by y+1: y == -1 -> [0]; y == 0 -> [1], ...
   val HAND_BLOCKERS: List[List[Point]] = hand_blockers()
 
-  def zone_char(zone: Zone): Char = {
-    if (zone.idx < Zone.UNDECIDED_ZONE.idx) {
-      (65 + zone.idx).toChar
+  def zone_char(zone: Zone): String = {
+    if (zone.idx > Zone.UNDECIDED_ZONE.idx) {
+      (65 + zone.idx).toChar.toString
     } else {
-      '-'
+      "-"
     }
   }
 
@@ -69,15 +70,15 @@ object Main {
 
         val bg = if (drones.exists(d => d.hands.exists(h => {
           d.pos.x + h.x == x && d.pos.y + h.y == y && is_reaching(level, d.pos, h)
-        }))) { """\x1B[48;5;202m"""}
-        else if (level.bonuses.contains(point)) { """\x1B[48;5;33m\x1B[38;5;15m"""}
-        else if (level.spawns.contains(point)) { """\x1B[48;5;33m\x1B[38;5;15m"""}
-        else if (level.beakons.contains(point)) { """\x1B[48;5;33m\x1B[38;5;15m"""}
+        }))) { "\u001B[48;5;202m"}
+        else if (level.bonuses.contains(point)) { "\u001B[48;5;33m\u001B[38;5;15m"}
+        else if (level.spawns.contains(point)) { "\u001B[48;5;33m\u001B[38;5;15m"}
+        else if (level.beakons.contains(point)) { "\u001B[48;5;33m\u001B[38;5;15m"}
         else {
           level.get_cell(x, y) match {
-            case Cell.EMPTY => """\x1B[48;5;252m"""
-            case Cell.BLOCKED => """\x1B[48;5;240m"""
-            case Cell.WRAPPED => """\x1B[48;5;227m"""
+            case Cell.EMPTY => "\u001B[48;5;252m"
+            case Cell.BLOCKED => "\u001B[48;5;240m"
+            case Cell.WRAPPED => "\u001B[48;5;227m"
           }
         }
         val ch = drones.zipWithIndex.find(p => p._1.hands.exists(h => {
@@ -104,7 +105,7 @@ object Main {
               }
           }
         }
-        print("""{}{}\x1B[0m""", bg, ch)
+        print(bg + ch + "\u001B[0m")
       }
       println()
     }
@@ -300,9 +301,9 @@ object Main {
   }
 
   def print_state(level: Level, drones: List[Drone]): Unit = {
-    println("""\x1B[2J""")
+    println("\u001B[2J")
     print_level(level, drones)
-    println("Empty {:?} Collected {:?}", level.zones_empty, level.collected)
+    println(s"Empty ${level.zones_empty} Collected ${level.collected}")
     for ((drone, i) <- drones.zipWithIndex) {
       val plan = drone.plan.map {
         case Action.UP => "↑"
@@ -313,14 +314,14 @@ object Main {
         case Action.JUMP1 => "T1"
         case Action.JUMP2 => "T2"
       }.toList
-      println("{}: zone {} wheels {} drill {} at ({},{}) plan {}", i, zone_char(drone.zone), drone.wheels, drone.drill, drone.pos.x, drone.pos.y, plan.mkString(""))
+      println(s"$i: zone ${zone_char(drone.zone)} wheels ${drone.wheels} drill ${drone.drill} at (${drone.pos.x},${drone.pos.y}) plan ${plan.mkString("")}")
     }
     Thread.sleep(DELAY_IN_MILLIS)
   }
 
   def solve_impl(level: Level, initialDrones: List[Drone], interactive: Boolean): String = {
     if (interactive) {
-      println("""\x1B[?1049h""")
+      println("\u001B[?1049h")
     }
     val drones = new ListBuffer[Drone]()
     drones.addAll(initialDrones)
@@ -379,7 +380,7 @@ object Main {
 
     if (interactive) {
       print_state(level, drones.toList)
-      println("""\x1B[?1049l""")
+      println("\u001B[?1049l")
     }
 
     val paths = drones.map(_.path).toList
@@ -436,11 +437,9 @@ object Main {
       }
     } else {
       val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threads))
-      for (filename <- filenames) {
-        ec.execute(() => {
-          solve(filename, interactive)
-        })
-      }
+      val futures = for (filename <- filenames)
+        yield CompletableFuture.runAsync(() => { solve(filename, interactive) })
+      CompletableFuture.allOf(futures.toList:_*).join()
     }
     if (tasks > 1) {
       val elapsed = Instant.now().toEpochMilli - t_start
