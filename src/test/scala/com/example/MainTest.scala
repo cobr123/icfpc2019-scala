@@ -31,6 +31,10 @@ class MainTest extends FunSuite {
     Main.main(Array[String]("--threads=8") ++ getDescFiles)
   }
 
+  test("run1 all") {
+    Main.main(Array[String]("--threads=1") ++ getDescFiles)
+  }
+
   test("run all") {
     Main.main(getDescFiles)
   }
