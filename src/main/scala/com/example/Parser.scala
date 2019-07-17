@@ -11,7 +11,7 @@ object Parser {
 
   val POINT_RE: Regex = """\((\d+),(\d+)\)""".r
   val BONUS_RE: Regex = """([BFLRC])\((\d+),(\d+)\)""".r
-  val SPAWN_RE: Regex = """\((\d+),(\d+)\)""".r
+  val SPAWN_RE: Regex = """[^\w]\((\d+),(\d+)\)""".r
 
 
   def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width

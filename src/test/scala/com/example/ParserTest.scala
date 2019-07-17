@@ -19,6 +19,7 @@ class ParserTest extends FunSuite {
     assertResult(24)(parsed._1.zones.length)
     assertResult(1)(parsed._1.zones_empty.length)
     assertResult(0)(parsed._1.bonuses.size)
+    assertResult(0)(parsed._1.spawns.size)
     assertResult(8)(parsed._1.width)
     assertResult(3)(parsed._1.height)
     assertResult(1)(parsed._2.headOption.map(_.pos.x).getOrElse(0))
@@ -32,6 +33,7 @@ class ParserTest extends FunSuite {
     assertResult(0)(parsed._1.zones.length)
     assertResult(0)(parsed._1.zones_empty.length)
     assertResult(0)(parsed._1.bonuses.size)
+    assertResult(0)(parsed._1.spawns.size)
     assertResult(0)(parsed._1.width)
     assertResult(0)(parsed._1.height)
     assertResult(1)(parsed._2.headOption.map(_.pos.x).getOrElse(0))
@@ -45,6 +47,7 @@ class ParserTest extends FunSuite {
     assertResult(0)(parsed._1.zones.length)
     assertResult(0)(parsed._1.zones_empty.length)
     assertResult(3)(parsed._1.bonuses.size)
+    assertResult(1)(parsed._1.spawns.size)
     assertResult(0)(parsed._1.width)
     assertResult(0)(parsed._1.height)
 
