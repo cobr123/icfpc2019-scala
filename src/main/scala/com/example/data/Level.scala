@@ -2,7 +2,7 @@ package com.example.data
 
 import scala.collection.mutable
 
-case class Level(grid: mutable.ListBuffer[Cell],
+case class Level(grid: Array[Cell],
                  weights: Vector[Int],
                  zones: Vector[Zone],
                  width: Int,
@@ -14,7 +14,7 @@ case class Level(grid: mutable.ListBuffer[Cell],
                  bonuses: mutable.HashMap[Point, Bonus] = new mutable.HashMap(),
                  collected: mutable.HashMap[Bonus, Int] = new mutable.HashMap()) {
 
-  def grid_idx(x: Int, y: Int): Int = x + y * width
+  def grid_idx(x: Int, y: Int): Int = Level.grid_idx(x, y, width)
 
   def get_cell(x: Int, y: Int): Cell = {
     assert(x >= 0 && x < width && y >= 0 && y < height)
@@ -49,4 +49,8 @@ case class Level(grid: mutable.ListBuffer[Cell],
 
   def walkable(x: Int, y: Int): Boolean = valid(x, y) && get_cell(x, y) != Cell.BLOCKED
 
+}
+
+object Level {
+  def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
 }

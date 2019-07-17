@@ -57,7 +57,7 @@ object Parser {
       && l.to.y >= (y + 1))
   }
 
-  def weights(grid: List[Cell], width: Int, height: Int): Vector[Int] = {
+  def weights(grid: Array[Cell], width: Int, height: Int): Vector[Int] = {
     val weights = new ListBuffer[Int]()
     for (y <- 0 until height) {
       for (x <- 0 until width) {
@@ -76,7 +76,7 @@ object Parser {
     weights.toVector
   }
 
-  def zones(zones_count: Int, grid: List[Cell], width: Int, height: Int): (Vector[Zone], ListBuffer[Int]) = {
+  def zones(zones_count: Int, grid: Array[Cell], width: Int, height: Int): (Vector[Zone], ListBuffer[Int]) = {
     val len = width * height
 
     val zones = new ListBuffer[Zone]()
@@ -130,7 +130,7 @@ object Parser {
   def build_level(walls: mutable.HashSet[Point], zones_count: Int): Level = {
     val height = walls.maxByOption(_.y).getOrElse(Point(0, 0)).y + 1
     val width = walls.maxByOption(_.x).getOrElse(Point(0, 0)).x
-    val grid = new ListBuffer[Cell]()
+    val grid = Array.ofDim[Cell](height * width)
     var empty = 0
     for (y <- 0 until height) {
       var last_cell: Cell = Cell.BLOCKED
@@ -138,15 +138,15 @@ object Parser {
         if (walls.contains(Point(x, y))) {
           last_cell = if (last_cell == Cell.EMPTY) Cell.BLOCKED else Cell.EMPTY
         }
-        grid.addOne(last_cell)
+        grid(Level.grid_idx(x, y, width)) = last_cell
         if (last_cell == Cell.EMPTY) {
           empty += 1
         }
       }
       assert(walls.contains(Point(width, y)) == (Cell.EMPTY == last_cell))
     }
-    val newweights = weights(grid.toList, width, height)
-    val (zones_all, zones_empty) = zones(zones_count, grid.toList, width, height)
+    val newweights = weights(grid, width, height)
+    val (zones_all, zones_empty) = zones(zones_count, grid, width, height)
     Level(grid, newweights, zones_all, width, height, empty, zones_empty)
   }
 
