@@ -369,7 +369,7 @@ object Main {
               val action = drone.plan.remove(0)
               drone.act(action, level)
             } else if (drone.wheels > 0) {
-              drone.path += "Z"
+              drone.path.append("Z")
             } else {
               throw new Exception("Nothing to do")
             }

@@ -9,7 +9,7 @@ case class Drone(var pos: Point,
                  hands: mutable.ArrayBuffer[Point] = mutable.ArrayBuffer(Point(0, 0), Point(1, -1), Point(1, 0), Point(1, 1)),
                  var wheels: Int = 0,
                  var drill: Int = 0,
-                 var path: String = "",
+                 path: StringBuilder = new StringBuilder(),
                  var plan: mutable.ArrayBuffer[Action] = new mutable.ArrayBuffer[Action](),
                  var zone: Zone = Zone.UNDECIDED_ZONE) {
 
@@ -23,7 +23,7 @@ case class Drone(var pos: Point,
 
   def choose_zone(taken: List[Zone], level: Level): Boolean = {
     if (zone == Zone.UNDECIDED_ZONE || level.zones_empty(zone.idx) == 0) {
-      val not_empty = level.zones_empty.zipWithIndex.filter { case (c,z) => c > 0 }.map { case (c,z) => z }.toList
+      val not_empty = level.zones_empty.zipWithIndex.filter { case (c, z) => c > 0 }.map { case (c, z) => z }.toList
       val not_taken = not_empty.filter(z => !taken.contains(z))
       val looking_in = if (not_taken.nonEmpty) {
         not_taken
@@ -86,7 +86,7 @@ case class Drone(var pos: Point,
       && has_space(level)) {
       Main.update(level.collected, Bonus.WHEELS, -1)
       wheels = 51
-      path += "F"
+      path.append("F")
       true
     } else {
       false
@@ -97,7 +97,7 @@ case class Drone(var pos: Point,
     if (level.collected.getOrElse(Bonus.DRILL, 0) > 0 && drill == 0) {
       Main.update(level.collected, Bonus.DRILL, -1)
       drill = 31
-      path += "L"
+      path.append("L")
       true
     } else {
       false
@@ -108,7 +108,7 @@ case class Drone(var pos: Point,
     if (level.collected.getOrElse(Bonus.HAND, 0) > 0) {
       Main.update(level.collected, Bonus.HAND, -1)
       val new_hand = Point(1, hands.last.y + 1)
-      path += s"B(${new_hand.x},${new_hand.y})"
+      path.append(s"B(${new_hand.x},${new_hand.y})")
       hands.addOne(new_hand)
       true
     } else {
@@ -119,7 +119,7 @@ case class Drone(var pos: Point,
   def set_beakon(level: Level): Boolean = {
     if (level.collected.getOrElse(Bonus.TELEPORT, 0) > 0 && level.beakons.forall(b => (b.x - pos.x).abs + (b.y - pos.y).abs >= 50)) {
       Main.update(level.collected, Bonus.TELEPORT, -1)
-      path += "R"
+      path.append("R")
       level.beakons.addOne(pos)
       true
     } else {
@@ -130,7 +130,7 @@ case class Drone(var pos: Point,
   def reduplicate(level: Level): Option[Drone] = {
     if (level.collected.getOrElse(Bonus.CLONE, 0) > 0 && level.spawns.contains(pos)) {
       Main.update(level.collected, Bonus.CLONE, -1)
-      path += "C"
+      path.append("C")
       Some(Drone(pos))
     } else {
       None
@@ -144,13 +144,13 @@ case class Drone(var pos: Point,
       case Some((newpos, new_wrapped, new_drilled)) =>
         pos = newpos
         action match {
-          case Action.UP => path += "W"
-          case Action.DOWN => path += "S"
-          case Action.LEFT => path += "A"
-          case Action.RIGHT => path += "D"
-          case Action.JUMP0 => path += s"T(${level.beakons(0).x},${level.beakons(0).y})"
-          case Action.JUMP1 => path += s"T(${level.beakons(1).x},${level.beakons(1).y})"
-          case Action.JUMP2 => path += s"T(${level.beakons(2).x},${level.beakons(2).y})"
+          case Action.UP => path.append("W")
+          case Action.DOWN => path.append("S")
+          case Action.LEFT => path.append("A")
+          case Action.RIGHT => path.append("D")
+          case Action.JUMP0 => path.append(s"T(${level.beakons(0).x},${level.beakons(0).y})")
+          case Action.JUMP1 => path.append(s"T(${level.beakons(1).x},${level.beakons(1).y})")
+          case Action.JUMP2 => path.append(s"T(${level.beakons(2).x},${level.beakons(2).y})")
         }
         for (p <- new_wrapped) {
           level.wrap_cell(p.x, p.y)
