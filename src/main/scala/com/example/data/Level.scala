@@ -3,8 +3,8 @@ package com.example.data
 import scala.collection.mutable
 
 case class Level(grid: Array[Cell],
-                 weights: Vector[Int],
-                 zones: Vector[Zone],
+                 weights: Array[Int],
+                 zones: Array[Zone],
                  width: Int,
                  height: Int,
                  var empty: Int,

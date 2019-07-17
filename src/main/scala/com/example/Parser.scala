@@ -57,8 +57,8 @@ object Parser {
       && l.to.y >= (y + 1))
   }
 
-  def weights(grid: Array[Cell], width: Int, height: Int): Vector[Int] = {
-    val weights = new ListBuffer[Int]()
+  def weights(grid: Array[Cell], width: Int, height: Int): Array[Int] = {
+    val weights = Array.ofDim[Int](width * height)
     for (y <- 0 until height) {
       for (x <- 0 until width) {
         var sum = 0
@@ -69,19 +69,19 @@ object Parser {
             sum += 1
           }
         }
-        weights += sum
+        weights(Level.grid_idx(x, y, width)) = sum
       }
     }
     assert(grid.length == weights.length)
-    weights.toVector
+    weights
   }
 
-  def zones(zones_count: Int, grid: Array[Cell], width: Int, height: Int): (Vector[Zone], ListBuffer[Int]) = {
+  def zones(zones_count: Int, grid: Array[Cell], width: Int, height: Int): (Array[Zone], ListBuffer[Int]) = {
     val len = width * height
 
-    val zones = new ListBuffer[Zone]()
-    for (_ <- 0 until len) {
-      zones += Zone.UNDECIDED_ZONE
+    val zones = Array.ofDim[Zone](len)
+    for (i <- 0 until len) {
+      zones(i) = Zone.UNDECIDED_ZONE
     }
 
     val zones_empty = new ListBuffer[Int]()
@@ -124,7 +124,7 @@ object Parser {
       }
     }
 
-    (zones.toVector, zones_empty)
+    (zones, zones_empty)
   }
 
   def build_level(walls: mutable.HashSet[Point], zones_count: Int): Level = {
