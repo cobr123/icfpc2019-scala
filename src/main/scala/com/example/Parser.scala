@@ -57,12 +57,14 @@ object Parser {
       && l.to.y >= (y + 1))
   }
 
+  val layouts = Array((0, 1), (0, -1), (-1, 0), (1, 0), (1, 1), (-1, -1), (-1, 1), (1, -1))
+
   def weights(grid: Array[Cell], width: Int, height: Int): Array[Int] = {
     val weights = Array.ofDim[Int](width * height)
     for (y <- 0 until height) {
       for (x <- 0 until width) {
         var sum = 0
-        for ((dx, dy) <- List((0, 1), (0, -1), (-1, 0), (1, 0), (1, 1), (-1, -1), (-1, 1), (1, -1))) {
+        for ((dx, dy) <- layouts) {
           val x2 = x + dx
           val y2 = y + dy
           if (x2 >= 0 && x2 < width && y2 >= 0 && y2 < height && grid(grid_idx(x2, y2, width)) == Cell.BLOCKED) {
