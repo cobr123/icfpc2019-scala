@@ -8,9 +8,9 @@ case class Level(grid: Array[Cell],
                  width: Int,
                  height: Int,
                  var empty: Int,
-                 zones_empty: mutable.ListBuffer[Int],
+                 zones_empty: mutable.ArrayBuffer[Int],
                  spawns: mutable.HashSet[Point] = new mutable.HashSet(),
-                 beakons: mutable.ListBuffer[Point] = new mutable.ListBuffer[Point](),
+                 beakons: mutable.ArrayBuffer[Point] = new mutable.ArrayBuffer[Point](),
                  bonuses: mutable.HashMap[Point, Bonus] = new mutable.HashMap(),
                  collected: mutable.HashMap[Bonus, Int] = new mutable.HashMap()) {
 

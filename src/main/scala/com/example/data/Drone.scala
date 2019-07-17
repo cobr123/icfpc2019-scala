@@ -3,14 +3,14 @@ package com.example.data
 import com.example.Main
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 
 case class Drone(var pos: Point,
-                 hands: mutable.ListBuffer[Point] = mutable.ListBuffer(Point(0, 0), Point(1, -1), Point(1, 0), Point(1, 1)),
+                 hands: mutable.ArrayBuffer[Point] = mutable.ArrayBuffer(Point(0, 0), Point(1, -1), Point(1, 0), Point(1, 1)),
                  var wheels: Int = 0,
                  var drill: Int = 0,
                  var path: String = "",
-                 var plan: mutable.ListBuffer[Action] = new mutable.ListBuffer[Action](),
+                 var plan: mutable.ArrayBuffer[Action] = new mutable.ArrayBuffer[Action](),
                  var zone: Zone = Zone.UNDECIDED_ZONE) {
 
   def wrap_bot(level: Level): Unit = {
@@ -42,7 +42,7 @@ case class Drone(var pos: Point,
       Main.explore_impl(level, this, rate) match {
         case Some((newplan, newpos, _)) =>
           zone = level.get_zone(newpos.x, newpos.y)
-          plan = new ListBuffer[Action]().addAll(newplan)
+          plan = new ArrayBuffer[Action]().addAll(newplan)
         case _ => throw new Exception("No zone left to choose")
       }
       true

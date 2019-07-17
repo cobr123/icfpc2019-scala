@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture
 import com.example.data._
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContext
 import util.control.Breaks._
 import scala.util.matching.Regex
@@ -29,12 +29,12 @@ object Main {
   }
 
   def hand_blockers(): Array[Array[Point]] = {
-    val res = new ListBuffer[Array[Point]]()
+    val res = new ArrayBuffer[Array[Point]]()
     res.addOne(Array(Point(1, -1)))
     res.addOne(Array(Point(1, 0)))
     res.addOne(Array(Point(1, 1)))
     for (maxy <- 2 until 19) {
-      val vec = new ListBuffer[Point]()
+      val vec = new ArrayBuffer[Point]()
       for (y <- 1 until (maxy / 2 + 1)) {
         vec.addOne(Point(0, y))
       }
@@ -193,7 +193,7 @@ object Main {
 
   def explore_impl(level: Level, drone: Drone, rate: (Level, Drone, Point) => Double): Option[(List[Action], Point, Double)] = {
     val seen = new mutable.HashSet[Point]()
-    val queue = new ListBuffer[Plan]()
+    val queue = new ArrayBuffer[Plan]()
     var best: Option[(List[Action], Point, Double)] = None
     var max_len = 5
     queue.addOne(Plan(
@@ -323,7 +323,7 @@ object Main {
     if (interactive) {
       println("\u001B[?1049h")
     }
-    val drones = new ListBuffer[Drone]()
+    val drones = new ArrayBuffer[Drone]()
     drones.addAll(initialDrones)
     drones(0).wrap_bot(level)
     breakable {
@@ -360,7 +360,7 @@ object Main {
               explore_clone(level, drone, drone_idx)
                 .orElse(explore_spawn(level, drone, drone_idx))
                 .orElse(explore(level, drone, max_wrapping)) match {
-                case Some(newplan) => drone.plan = new ListBuffer[Action]().addAll(newplan)
+                case Some(newplan) => drone.plan = new ArrayBuffer[Action]().addAll(newplan)
                 case _ =>
               }
             }
@@ -414,7 +414,7 @@ object Main {
     val t_start = Instant.now().toEpochMilli
     var interactive = false
     var threads = Runtime.getRuntime.availableProcessors()
-    val filenames = new ListBuffer[String]()
+    val filenames = new ArrayBuffer[String]()
 
     for (arg <- args) {
       if ("--interactive".equalsIgnoreCase(arg)) {

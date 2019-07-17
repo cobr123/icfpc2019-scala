@@ -3,7 +3,7 @@ package com.example
 import com.example.data._
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 import scala.util.matching.Regex
 
@@ -78,7 +78,7 @@ object Parser {
     weights
   }
 
-  def zones(zones_count: Int, grid: Array[Cell], width: Int, height: Int): (Array[Zone], ListBuffer[Int]) = {
+  def zones(zones_count: Int, grid: Array[Cell], width: Int, height: Int): (Array[Zone], ArrayBuffer[Int]) = {
     val len = width * height
 
     val zones = Array.ofDim[Zone](len)
@@ -86,12 +86,12 @@ object Parser {
       zones(i) = Zone.UNDECIDED_ZONE
     }
 
-    val zones_empty = new ListBuffer[Int]()
+    val zones_empty = new ArrayBuffer[Int]()
     for (_ <- 0 until zones_count) {
       zones_empty += 0
     }
 
-    val queue = new ListBuffer[(Point, Int)]()
+    val queue = new ArrayBuffer[(Point, Int)]()
     val rng = new Random(42)
     while (queue.length < zones_count) {
       val x = rng.nextInt(width)
