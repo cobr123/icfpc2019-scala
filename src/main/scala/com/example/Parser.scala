@@ -152,7 +152,7 @@ object Parser {
     Level(grid, newweights, zones_all, width, height, empty, zones_empty)
   }
 
-  val CLONE_RE: Regex = """C(d+,d+)""".r
+  val CLONE_RE: Regex = """C\(\d+,\d+\)""".r
 
   val FRAGMENTS_RE: Regex = "([^#]*)#([^#]*)#([^#]*)#([^#]*)".r
 
