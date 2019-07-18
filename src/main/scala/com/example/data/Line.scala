@@ -1,3 +1,3 @@
 package com.example.data
 
-case class Line(from: Point, to: Point)
+final case class Line(from: Point, to: Point)

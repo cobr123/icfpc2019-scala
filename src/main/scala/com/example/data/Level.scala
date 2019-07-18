@@ -2,7 +2,7 @@ package com.example.data
 
 import scala.collection.mutable
 
-case class Level(grid: Array[Cell],
+final case class Level(grid: Array[Cell],
                  weights: Array[Int],
                  zones: Array[Zone],
                  width: Int,
