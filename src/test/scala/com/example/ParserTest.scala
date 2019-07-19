@@ -54,4 +54,34 @@ class ParserTest extends FunSuite {
     assertResult(Bonus.DRILL)(parsed._1.bonuses(Point(7, 14)))
     assertResult(Bonus.WHEELS)(parsed._1.bonuses(Point(8, 18)))
   }
+
+  test("parseLevelClone1") {
+    val parsed = Parser.parse_level("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(1,18)##X(9,13);(3,14);L(7,14);C(8,18);F(19,26)")
+    assertResult(24)(parsed._1.grid.length)
+    assertResult(20)(parsed._1.empty)
+    assertResult(24)(parsed._1.zones.length)
+    assertResult(2)(parsed._1.zones_empty.length)
+    assertResult(3)(parsed._1.bonuses.size)
+    assertResult(1)(parsed._1.spawns.size)
+    assertResult(8)(parsed._1.width)
+    assertResult(3)(parsed._1.height)
+
+    assertResult(Bonus.DRILL)(parsed._1.bonuses(Point(7, 14)))
+    assertResult(Bonus.CLONE)(parsed._1.bonuses(Point(8, 18)))
+  }
+
+  test("parseLevelClone2") {
+    val parsed = Parser.parse_level("(0,0),(6,0),(6,1),(8,1),(8,2),(6,2),(6,3),(0,3)#(1,18)##X(9,13);(3,14);C(7,14);C(8,18);F(19,26)")
+    assertResult(24)(parsed._1.grid.length)
+    assertResult(20)(parsed._1.empty)
+    assertResult(24)(parsed._1.zones.length)
+    assertResult(3)(parsed._1.zones_empty.length)
+    assertResult(3)(parsed._1.bonuses.size)
+    assertResult(1)(parsed._1.spawns.size)
+    assertResult(8)(parsed._1.width)
+    assertResult(3)(parsed._1.height)
+
+    assertResult(Bonus.CLONE)(parsed._1.bonuses(Point(7, 14)))
+    assertResult(Bonus.CLONE)(parsed._1.bonuses(Point(8, 18)))
+  }
 }
