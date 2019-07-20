@@ -48,6 +48,6 @@ class MainTest extends FunSuite {
 
   def getDescFiles: Array[String] = {
     val projectDir = new java.io.File(".").getAbsolutePath
-    Paths.get(projectDir, "problems").toFile.listFiles.filter(_.isFile).filter(_.getName.endsWith(".desc")).map(_.getAbsolutePath)
+    Paths.get(projectDir, "problems").toFile.listFiles.filter(_.isFile).filter(_.getName.endsWith(".desc")).map(_.getAbsolutePath).sorted
   }
 }
