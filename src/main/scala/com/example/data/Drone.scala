@@ -81,8 +81,8 @@ final case class Drone(var pos: Point,
   }
 
   def activate_wheels(level: Level): Boolean = {
-    if (level.collected.getOrElse(Bonus.WHEELS, 0) > 0
-      && wheels == 0
+    if (wheels == 0
+      && level.collected.getOrElse(Bonus.WHEELS, 0) > 0
       && has_space(level)) {
       Main.update(level.collected, Bonus.WHEELS, -1)
       wheels = 51
@@ -94,7 +94,7 @@ final case class Drone(var pos: Point,
   }
 
   def activate_drill(level: Level): Boolean = {
-    if (level.collected.getOrElse(Bonus.DRILL, 0) > 0 && drill == 0) {
+    if (drill == 0 && level.collected.getOrElse(Bonus.DRILL, 0) > 0) {
       Main.update(level.collected, Bonus.DRILL, -1)
       drill = 31
       path.append("L")
