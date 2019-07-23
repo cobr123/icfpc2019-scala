@@ -129,13 +129,16 @@ object Main {
   }
 
   def would_wrap(level: Level, drone: Drone, pos: Point, wrapped: mutable.HashSet[Point]): Unit = {
-    for (hand <- drone.hands) {
+    var idx = 0
+    while (idx < drone.hands.length) {
+      val hand = drone.hands(idx)
       if (is_reaching(level, pos, hand)) {
         val hand_pos = Point(pos.x + hand.x, pos.y + hand.y)
         if (level.get_cell(hand_pos.x, hand_pos.y) == Cell.EMPTY) {
           wrapped.addOne(hand_pos)
         }
       }
+      idx += 1
     }
   }
 
@@ -230,7 +233,9 @@ object Main {
           }
         }
 
-        for (action <- Action.all) {
+        var idx = 0
+        while (idx < Action.all.length) {
+          val action = Action.all(idx)
           step(level, drone, pos, action, wheels > 0, drill > 0, drilled) match {
             case Some((pos2, _, new_drilled)) =>
               if (!seen.contains(pos2)) {
@@ -238,10 +243,8 @@ object Main {
                 val plan2 = plan.clone()
                 plan2.addOne(action)
                 val drilled2 = drilled.clone()
+                drilled2.addAll(new_drilled)
 
-                for (p <- new_drilled) {
-                  drilled2.addOne(p)
-                }
                 queue.addOne(Plan(
                   plan = plan2,
                   pos = pos2,
@@ -260,6 +263,7 @@ object Main {
               }
             case _ =>
           }
+          idx += 1
         }
       }
     }
@@ -331,7 +335,8 @@ object Main {
         if (interactive) {
           print_state(level, drones.toList)
         }
-        for (drone_idx <- 0 until drones.length) {
+        var drone_idx = 0
+        while (drone_idx < drones.length) {
           if (level.empty <= 0) {
             break
           }
@@ -374,6 +379,7 @@ object Main {
               throw new Exception("Nothing to do")
             }
           }
+          drone_idx += 1
         }
       }
     }
