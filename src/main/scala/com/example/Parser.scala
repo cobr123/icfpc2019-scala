@@ -71,7 +71,7 @@ object Parser {
             sum += 1
           }
         }
-        weights(Level.grid_idx(x, y, width)) = sum
+        weights(grid_idx(x, y, width)) = sum
       }
     }
     assert(grid.length == weights.length)
@@ -140,7 +140,7 @@ object Parser {
         if (walls.contains(Point(x, y))) {
           last_cell = if (last_cell == Cell.EMPTY) Cell.BLOCKED else Cell.EMPTY
         }
-        grid(Level.grid_idx(x, y, width)) = last_cell
+        grid(grid_idx(x, y, width)) = last_cell
         if (last_cell == Cell.EMPTY) {
           empty += 1
         }

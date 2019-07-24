@@ -1,5 +1,7 @@
 package com.example.data
 
+import com.example.Parser
+
 import scala.collection.mutable
 
 final case class Level(grid: Array[Cell],
@@ -14,7 +16,7 @@ final case class Level(grid: Array[Cell],
                  bonuses: mutable.HashMap[Point, Bonus] = new mutable.HashMap(),
                  collected: mutable.HashMap[Bonus, Int] = new mutable.HashMap()) {
 
-  def grid_idx(x: Int, y: Int): Int = Level.grid_idx(x, y, width)
+  def grid_idx(x: Int, y: Int): Int = Parser.grid_idx(x, y, width)
 
   def get_cell(x: Int, y: Int): Cell = {
     assert(x >= 0 && x < width && y >= 0 && y < height)
@@ -51,6 +53,3 @@ final case class Level(grid: Array[Cell],
 
 }
 
-object Level {
-  def grid_idx(x: Int, y: Int, width: Int): Int = x + y * width
-}
